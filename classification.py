@@ -2,11 +2,12 @@ import numpy as np
 from kernels import linear
 from scipy.optimize import minimize
 
-from sklearn.metrics.pairwise import pairwise_kernels
-
+#from sklearn.metrics.pairwise import pairwise_kernels
+#import pdb
 
 __author__ = 'Otilia Stretcu'
 
+#import pdb
 
 class SVM:
     def __init__(self, kernel_func=linear, C=1, tol=1e-3):
@@ -71,10 +72,13 @@ class SVM:
         K = np.zeros((num_samples,num_samples))
         num_samples, num_features = x.shape
         for i in range(num_samples) :
-            for j in range(i,num_samples) :
-                K[i,j] = self.kernel_func(x[i,:],x[j,:])
-                K[j,i] = K[i,j]
-#        K = self.kernel_func(x,np.transpose(x))
+            K[i,:] = self.kernel_func(x[i,:],x).reshape((1,num_samples))
+#            for j in range(i,num_samples) :
+#                K[i,j] = self.kernel_func(x[i,:],x[j,:])
+#                K[j,i] = K[i,j]
+                
+
+#        K = self.kernel_func(x,x)
         return K
 
     def solve_dual(self, x, y):
@@ -91,10 +95,10 @@ class SVM:
         # Use the kernel function to compute the kernel matrix.
         K = self.compute_kernel_matrix(x)
 
-        K1 = pairwise_kernels(x,x,metric='rbf')
+        #K1 = pairwise_kernels(x,x,metric='linear')
 
-        print K-K1
-       
+        #print K-K1
+
 
         # Solve the dual problem:
         #    max sum_i alpha_i - 1/2 sum_{i,j} alpha_i * alpha_j * y_i * y_j * k(x_i, x_j)
@@ -118,15 +122,17 @@ class SVM:
             num_samples, = alphas.shape
             alphas_row = alphas.reshape((1,num_samples))
             y_row = y.reshape((1,num_samples))
+            
             element_alpha = np.matmul(np.transpose(alphas_row),alphas_row)
             element_y = np.matmul(np.transpose(y_row),y_row)
+            
             element1 = np.multiply(element_alpha,element_y)
             element = np.multiply(element1,K)
              # turn max into minimize 
-            obj = -np.sum(alphas) + 1/2*np.sum(element)
+            obj = -np.sum(alphas) + 0.5*np.sum(element)
            
            
-            #tmp_1 = np.ones((num_samples,num_samples))/2 + np.eye(num_samples)/2
+
             M = np.multiply(element_y,K)           
             #A = np.matmul(M,tmp_1)
             
@@ -134,7 +140,14 @@ class SVM:
             A1 = np.matmul(alphas_row,M)
             A2 = np.matmul(M,np.transpose(alphas_row))
             A = A1 + np.transpose(A2)
-            gradient = -1 + A/2
+            gradient = -1 + 0.5*A
+            
+#            gradient = -np.ones((1,num_samples))
+#            for k in range(num_samples): 
+#                for j in range(num_samples):
+#                    gradient[k] = gradient[k] + 0.5*alphas[j]*y[k]*y[j]*K[k,j]
+#                for i in range(num_samples):
+#                    gradient[k] = gradient[k] + 0.5*alphas[i]*y[i]*y[k]*K[i,k]       
             return (obj, gradient)
 
         # Define any necessary inequality and equality constraints.
@@ -144,11 +157,12 @@ class SVM:
             res = np.sum(res)
             return res
         
+
         #jac_cons = y.reshape((1,num_samples))
         constraints = (
             {'type': 'eq',
-             'fun': constraint1})
-             #'jac': jac_cons})
+             'fun': constraint1,
+             'jac': lambda x: y})
 
         # Define the bounds for each alpha.
         # TODO: implement this.
@@ -248,17 +262,24 @@ class SVM:
         
         # TODO: implement this.
         num_support = support_multipliers.shape[0]
-        tmp1 = np.multiply(support_multipliers,support_vector_labels)
+        tmp1= np.multiply(support_multipliers,support_vector_labels)
         
         for i in range(num_samples):
-            sum = 0
-            for j in range(num_support):
-                #tmp2 = kernel_func(support_vectors[j,:],inputs[i,:])
-                tmp2 = pairwise_kernels(support_vectors[j,:],inputs[i,:],metric='linear')
-                sum = tmp2*tmp1[j]+sum
+            tmp2 = kernel_func(support_vectors,inputs[i,:])
             
-            sum = sum + bias
-            predictions[i] = np.sign(sum)
+            res = np.sum(np.multiply(tmp1,tmp2)) + bias
+#            for j in range(num_support):
+#                
+##                tmp2 = pairwise_kernels(support_vectors[j,:].reshape(1,-1),
+##                                        inputs[i,:].reshape(1,-1),metric='linear')
+#                sum = tmp2*tmp1[j]+sum
+#            
+#            sum = sum + bias
+            predictions[i] = np.sign(res)
+
+#        K = kernel_func(support_vectors,inputs)
+#        pdb.set_trace()
+#        predictions = np.sign(np.matmul(tmp1,K) + bias)
 
         return predictions
 
@@ -292,15 +313,22 @@ class SVM:
         num_support = support_multipliers.shape[0]
         tmp1 = np.multiply(support_multipliers,support_vector_labels)
         for i in range(num_samples):
-            sum = 0
-            for j in range(num_support):
-                #tmp2 = kernel_func(support_vectors[j,:],x[i,:])
-                tmp2 = pairwise_kernels(support_vectors[j,:],inputs[i,:],metric='linear')
-                sum = tmp2*tmp1[j]+sum
+            tmp2 = kernel_func(support_vectors,x[i,:])
             
-            sum = sum + bias
-            f[i] = sum
+            f[i] = np.sum(np.multiply(tmp1,tmp2)) + bias
+            
+#            sum = 0
+#            for j in range(num_support):
+#                tmp2 = kernel_func(support_vectors[j,:],x[i,:])
+##                tmp2 = pairwise_kernels(support_vectors[j,:].reshape(1,-1),
+##                                        x[i,:].reshape(1,-1),metric='linear')
+#                sum = tmp2*tmp1[j]+sum
+#            
+#            sum = sum + bias
+#            f[i] = sum
 
+#        K = kernel_func(support_vectors,x)
+#        f = np.matmul(tmp1,K) + bias
         return f
 
 

@@ -11,8 +11,16 @@ import numpy as np
 import numdifftools as nd
 from sklearn.metrics.pairwise import pairwise_kernels
 
-a=np.array([1,2])
-print a**2
+a=np.array([[1,2],[3,4],[2,2]])
+b = np.array([[1,1],[2,1],[4,1]])
+c = np.array([1,2])
+d=np.array([[2,3],[1,2],[4,1]])
+print np.sum(c**2,axis=1)
+#a_norm = np.sum(a ** 2, axis = -1)
+#b_norm = np.sum(b ** 2, axis = -1)
+#gamma = 1e3
+#K = np.exp(-gamma * (a_norm[:,None] + b_norm[None,:] - 2 * np.matmul(a, np.transpose(b))))
+#print K
 #k2 = np.array([1,2,3])
 #k3 = np.array([1,1,2])
 #C_group = np.array([1e-4,1e-3,1e-2,1e-1,1,1e1,1e2,1e3,1e4])
@@ -24,6 +32,7 @@ print a**2
 #k8 = np.array([[2],[1]])
 
 y = np.array([[1],[-1],[1],[1]])
+
 alphas_init = np.zeros((4,))
 K= np.ones((4,4))
 def objective(alphas):
