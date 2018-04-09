@@ -8,11 +8,14 @@ def linear(x, y):
     Calculates k(x_i, x_j) to be the dot product <x_i, x_j>.
     :return:
     """
-    if len(x.shape) == 1:
-        return y.dot(x)
-    else:
-        return x.dot(y)
+    #original
+#    if len(x.shape) == 1:
+#        return y.dot(x)
+#    else:
+#        return x.dot(y)
 
+# mine
+    return np.matmul(x,np.transpose(y))
 
 def rbf(x, y, gamma=None):
 #	# TODO: implement this.
@@ -24,9 +27,15 @@ def rbf(x, y, gamma=None):
 #            eu_dist = np.sum((x[i,:]-y[j,:])**2)
 #            K[i,j] = np.exp(-gamma*eu_dist)
     if (len(x.shape) == 1) and (len(y.shape) == 1):
-        eu_dist = np.sum((x-y)**2)
+        #norm
+        eu_dist = np.linalg.norm(x-y)**2
+        #shabi
+#        eu_dist = np.sum((x-y)**2)
     else:
-        eu_dist = np.sum((x-y)**2,axis=1)
+        #norm
+        eu_dist = np.linalg.norm(x-y,axis=1)**2
+        #mine shabi
+#        eu_dist = np.sum((x-y)**2,axis=1)
     
     K = np.exp(-gamma*eu_dist)
     return K

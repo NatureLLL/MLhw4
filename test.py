@@ -14,8 +14,9 @@ from sklearn.metrics.pairwise import pairwise_kernels
 a=np.array([[1,2],[3,4],[2,2]])
 b = np.array([[1,1],[2,1],[4,1]])
 c = np.array([1,2])
+e=np.array([2,2])
 d=np.array([[2,3],[1,2],[4,1]])
-print np.sum(c**2,axis=1)
+print np.linalg.norm(c-e)**2 
 #a_norm = np.sum(a ** 2, axis = -1)
 #b_norm = np.sum(b ** 2, axis = -1)
 #gamma = 1e3
@@ -32,7 +33,6 @@ print np.sum(c**2,axis=1)
 #k8 = np.array([[2],[1]])
 
 y = np.array([[1],[-1],[1],[1]])
-
 alphas_init = np.zeros((4,))
 K= np.ones((4,4))
 def objective(alphas):

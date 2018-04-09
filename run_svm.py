@@ -68,6 +68,12 @@ for i in range(len(C_group)):
 #x_train, y_train = load_data_csv(os.path.join(data_folder, dataset_name+'_train.csv'))
 #x_test, y_test = load_data_csv(os.path.join(data_folder, dataset_name+'_test.csv'))
 #
+## xia jb write
+##kernel_func = functools.partial(rbf, gamma=1e1)
+##svm = SVM(kernel_func=kernel_func, C=1)
+##print('Training...')
+##svm.train(x_train, y_train)
+#
 #plot_points(x_train, y_train, class_colors=class_colors, title='Train - correct labels')
 #plot_points(x_test, y_test, class_colors=class_colors, title='Test - correct labels')
 #for i in range(len(gamma_group)):

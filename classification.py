@@ -3,11 +3,11 @@ from kernels import linear
 from scipy.optimize import minimize
 
 #from sklearn.metrics.pairwise import pairwise_kernels
+#from sklearn.metrics.pairwise import rbf_kernel
 #import pdb
 
 __author__ = 'Otilia Stretcu'
 
-#import pdb
 
 class SVM:
     def __init__(self, kernel_func=linear, C=1, tol=1e-3):
@@ -95,9 +95,11 @@ class SVM:
         # Use the kernel function to compute the kernel matrix.
         K = self.compute_kernel_matrix(x)
 
-        #K1 = pairwise_kernels(x,x,metric='linear')
-
-        #print K-K1
+#        K1 = pairwise_kernels(x,x,metric='linear')
+#        K1 = rbf_kernel(x,x,gamma=1e1)
+#        print np.linalg.norm(K-K1)
+        
+       # pdb.set_trace()
 
 
         # Solve the dual problem:
@@ -130,12 +132,9 @@ class SVM:
             element = np.multiply(element1,K)
              # turn max into minimize 
             obj = -np.sum(alphas) + 0.5*np.sum(element)
-           
-           
-
+                      
             M = np.multiply(element_y,K)           
-            #A = np.matmul(M,tmp_1)
-            
+            #A = np.matmul(M,tmp_1)            
             #gradient = -1 + np.diag(A)
             A1 = np.matmul(alphas_row,M)
             A2 = np.matmul(M,np.transpose(alphas_row))
@@ -209,7 +208,7 @@ class SVM:
     def compute_bias(self, x, y, alphas, support_vector_indices, kernel_func):
         """
         Uses the support vectors to compute the bias.
-        :param x(np.ndarray): Inputs, of shape (num_samplesss, num_dims)
+        :param x(np.ndarray): Inputs, of shape (num_samples, num_dims)
         :param y(np.ndarray): Targets, of shape (num_samples,),
             having values either -1 or 1.
         :param alphas(np.array): Lagrange multipliers, of shape (num_samples,)
@@ -227,13 +226,22 @@ class SVM:
         # http://fouryears.eu/wp-content/uploads/svm_solutions.pdf
         
         # TODO: implement this.
-        num_samples, num_features = x.shape
+        num_features = x.shape[1]
+        num_support = support_vector_indices.shape[0]
         
-        tmp1 = np.multiply(alphas,y)
-        w_optimal = np.matmul(tmp1.reshape(1,num_samples),x)
-        w_optimal = w_optimal.reshape((num_features,1))
+#        tmp1 = np.multiply(alphas,y)
+#        w_optimal = np.matmul(tmp1.reshape(1,num_samples),x)
+#        w_optimal = w_optimal.reshape((num_features,1))
+#        
+#        e_s = y[support_vector_indices] - np.matmul(x[support_vector_indices,:],w_optimal)
+#        bias = np.median(e_s)
         
-        e_s = y[support_vector_indices] - np.matmul(x[support_vector_indices,:],w_optimal)
+        support_vectors = x[support_vector_indices].reshape((num_support,num_features))
+        support_vector_labels = y[support_vector_indices].reshape((num_support,1))
+        support_multipliers = alphas[support_vector_indices].reshape((num_support,1))
+        tmp2 = np.multiply(support_multipliers,support_vector_labels).reshape((1,num_support))
+        w_optimal = np.matmul(tmp2,support_vectors).reshape((num_features,1))
+        e_s = support_vector_labels - np.matmul(support_vectors,w_optimal)
         bias = np.median(e_s)
         return bias
 
@@ -257,14 +265,14 @@ class SVM:
                  support_vector_labels, bias, kernel_func):
         # Predict the class of each sample, one by one, and fill in the result
         # in the array predictions.
-        num_samples = inputs.shape[0]
-        predictions = np.zeros((num_samples,))
+        num_test = inputs.shape[0]
+        predictions = np.zeros((num_test,))
         
         # TODO: implement this.
-        num_support = support_multipliers.shape[0]
+#        num_support = support_multipliers.shape[0]
         tmp1= np.multiply(support_multipliers,support_vector_labels)
         
-        for i in range(num_samples):
+        for i in range(num_test):
             tmp2 = kernel_func(support_vectors,inputs[i,:])
             
             res = np.sum(np.multiply(tmp1,tmp2)) + bias
@@ -306,15 +314,15 @@ class SVM:
             f(np.ndarray): Array of shape (num_samples,).
         """
         # TODO: implement this.
-        num_samples = x.shape[0]
-        f = np.zeros((num_samples,))
+        num_test = x.shape[0]
+        f = np.zeros((num_test,))
         
         # TODO: implement this.
-        num_support = support_multipliers.shape[0]
+#        num_support = support_multipliers.shape[0]
         tmp1 = np.multiply(support_multipliers,support_vector_labels)
-        for i in range(num_samples):
+        for i in range(num_test):
             tmp2 = kernel_func(support_vectors,x[i,:])
-            
+
             f[i] = np.sum(np.multiply(tmp1,tmp2)) + bias
             
 #            sum = 0
